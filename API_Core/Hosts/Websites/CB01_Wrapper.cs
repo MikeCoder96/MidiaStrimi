@@ -9,7 +9,7 @@ namespace API_Core.Hosts.Websites
 {
     class CB01_Wrapper : AbstractStreamPage
     {
-        static string actual_url = null;
+        private string actual_url = null;
         private string retrieveLink()
         {
             if (actual_url == null) {
