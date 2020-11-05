@@ -11,6 +11,8 @@ namespace API_Core.Hosts
                 case 1:
                     return new CB01_Wrapper();
 
+                case 2:
+                    return new AltaDefinizione_Wrapper();
                 default:
                     return new CB01_Wrapper();
             }

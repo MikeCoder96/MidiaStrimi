@@ -7,10 +7,10 @@ namespace midiastrimi_cli
 {
     class Program
     {
+        static MainClass mainClass = new MainClass();
         static void Main()
-        {
-            MainClass mainClass = new MainClass();
-            List<Movie> res = mainClass.getMovieWithTitle(Console.ReadLine(), 1);
+        {    
+            List<Movie> res = mainClass.getMovieWithTitle(Console.ReadLine(), 2);
             foreach (var x in res)
             {
                 Console.WriteLine(x.getMovieTitle());

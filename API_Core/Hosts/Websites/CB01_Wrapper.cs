@@ -17,7 +17,7 @@ namespace API_Core.Hosts.Websites
                 var extr = test.DownloadString("https://www.cb01.community/");
                 HtmlAgilityPack.HtmlDocument doctodown = new HtmlAgilityPack.HtmlDocument();
                 doctodown.LoadHtml(extr);
-                return doctodown.DocumentNode.SelectNodes("/html/body/div/h2/a/b")[0].InnerText;
+                actual_url =  doctodown.DocumentNode.SelectNodes("/html/body/div/h2/a/b")[0].InnerText;
             }
             return actual_url;
         }
@@ -51,11 +51,11 @@ namespace API_Core.Hosts.Websites
                     foreach (HtmlAgilityPack.HtmlNode node in nodes)
                     {
                         string ImageLink = node.Descendants("img").FirstOrDefault().Attributes["src"].Value;
-                        string MovieLink = node.Descendants("a").FirstOrDefault().Attributes[0].Value;
+                        Uri MovieLink = new Uri(node.Descendants("a").FirstOrDefault().Attributes[0].Value);
                         string MovieTitle = node.Descendants("h3").FirstOrDefault().InnerText;
                         string DescriptionData = node.Descendants("p").FirstOrDefault().InnerText;
 
-                        mvList.Add(new Movie(WebUtility.HtmlDecode(MovieTitle), WebUtility.HtmlDecode(DescriptionData),WebUtility.HtmlDecode(DescriptionData)));
+                        mvList.Add(new Movie(WebUtility.HtmlDecode(MovieTitle), WebUtility.HtmlDecode(DescriptionData), MovieLink));
                     }
                     int suc = i + 1;
                     title = title.Replace("/" + i + "/", "/" + suc + "/");

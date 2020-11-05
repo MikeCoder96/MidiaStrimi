@@ -8,10 +8,10 @@ namespace API_Core
     {
         private readonly string movieTitle;
         private readonly string movieDescription;
-        private readonly string pageLink;
+        private readonly Uri pageLink;
         private List<string> streamLinks;
 
-        public Movie(string s_movieTitle, string s_movieDescription, string s_pageLink)
+        public Movie(string s_movieTitle, string s_movieDescription, Uri s_pageLink)
         {
             this.movieTitle = s_movieTitle;
             this.movieDescription = s_movieDescription;
@@ -29,7 +29,7 @@ namespace API_Core
             return this.movieDescription;
         }
 
-        public string getMoviePageLink()
+        public Uri getMoviePageLink()
         {
             return this.pageLink;
         }
