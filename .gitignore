@@ -8,3 +8,5 @@ API_Core/bin/
 API_Core/obj/
 
 .vs/
+
+.vscode/
