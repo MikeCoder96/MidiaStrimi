@@ -16,13 +16,16 @@ namespace midiastrimi_cli
             int provider = int.Parse(Console.ReadLine());
             Console.Write("Please insert a movie title: ");
             string movieTitle = Console.ReadLine();
-            List<Movie> retrieved = mainClass.getMovieWithTitle(movieTitle, provider);
+            mainClass.initialize(provider);
+            List<Movie> retrieved = mainClass.getMovieWithTitle(movieTitle);
 
+            int index = 0;
             foreach (var x in retrieved)
             {
+                Console.WriteLine("\nChoice: " + index++.ToString());
                 Console.WriteLine("Title: " + x.getMovieTitle());
                 int charCounter = 0;
-                Console.Write('\t');
+                Console.Write('\t');                                                                              //CB01 strange whitespaces.....
                 string to_print = x.getMovieDesc().Replace("\r", "").Replace("\n", "").Replace("\t", "").Replace("                                                                                               ", " ");
                 for (int i = 0; i < to_print.Length; i++)
                 {
@@ -35,7 +38,15 @@ namespace midiastrimi_cli
                         Console.Write('\t');
                     }
                 }
-                Console.WriteLine();
+                Console.WriteLine("\n");
+            }
+            Console.Write("Your choice: ");
+            int choiceI = int.Parse(Console.ReadLine());
+            mainClass.getStreamList(retrieved[choiceI]);
+            Console.WriteLine("Here your stream links:");
+            foreach (var x in retrieved[choiceI].getStreams())
+            {
+                Console.WriteLine("\t" + x);
             }
         }
     }

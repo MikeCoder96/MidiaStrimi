@@ -5,10 +5,23 @@ namespace API_Core
 {
     public class MainClass
     {
-        public List<Movie> getMovieWithTitle(string movie, int option)
+        private AbstractStreamPage providerChoosed;
+
+        public void initialize(int option)
         {
-            var res = HostChooser.chooseWebsite(option).searchMovie(movie);
+            if (providerChoosed == null)
+                providerChoosed = HostChooser.chooseWebsite(option);
+        }
+
+        public List<Movie> getMovieWithTitle(string movie)
+        {
+            var res = providerChoosed.searchMovie(movie);
             return res;
+        }
+
+        public void getStreamList(Movie movie)
+        {
+            providerChoosed.retrieveStreamLinks(movie);
         }
     }
 }

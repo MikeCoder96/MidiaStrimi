@@ -68,5 +68,9 @@ namespace API_Core.Hosts.Websites
                 return null;
             }
         }
+        public override void retrieveStreamLinks(Movie movie)
+        {
+
+        }
     }
 }
