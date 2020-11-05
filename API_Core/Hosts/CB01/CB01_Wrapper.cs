@@ -10,19 +10,22 @@ namespace API_Core.Hosts.CB01
 {
     class CB01_Wrapper : AbstractStreamPage
     {
-        public override string retrieveLink()
+        static string actual_url = null;
+        private string retrieveLink()
         {
-            WebClient test = new WebClient();
-            var extr = test.DownloadString("https://www.cb01.community/");
-            HtmlAgilityPack.HtmlDocument doctodown = new HtmlAgilityPack.HtmlDocument();
-            doctodown.LoadHtml(extr);
-            return doctodown.DocumentNode.SelectNodes("/html/body/div/h2/a/b")[0].InnerText;
+            if (actual_url == null) {
+                WebClient test = new WebClient();
+                var extr = test.DownloadString("https://www.cb01.community/");
+                HtmlAgilityPack.HtmlDocument doctodown = new HtmlAgilityPack.HtmlDocument();
+                doctodown.LoadHtml(extr);
+                return doctodown.DocumentNode.SelectNodes("/html/body/div/h2/a/b")[0].InnerText;
+            }
+            return actual_url;
         }
         public override List<Movie> searchMovie(string tmp_title)
         {
             string title = retrieveLink() + "/page/1/?s=" + tmp_title;
             List<Movie> mvList = new List<Movie>();
-            int maxPages = 5;
             int lastPage = 1;
             try
             {
@@ -37,24 +40,7 @@ namespace API_Core.Hosts.CB01
                 {
                     return null;
                 }
-                /*if (!CB01.isFirst)
-                {
-                    var numNodes = htmlDoc.DocumentNode.SelectNodes("//ul[contains(@class, 'pagination')]/li[contains(@class, 'page-item')]");
-                    if (numNodes != null)
-                    {
-                        Form1.Self.Working = true;
-                        string number = numNodes[numNodes.Count() - 2].InnerText;
-                        if (number.Contains('.'))
-                            lastPage = Int32.Parse(number.Replace(".", ""));
-                        else lastPage = Int32.Parse(numNodes[numNodes.Count() - 2].InnerText);
-                    }
-                }
-                else
-                {
-                    lastPage = 5;
-                    CB01.isFirst = false;
-                }*/
-                for (int i = 1; i <= lastPage; i++)
+               for (int i = 1; i <= lastPage; i++)
                 {
                     target = new Uri(title);
                     handler = new ClearanceHandler();
@@ -82,7 +68,6 @@ namespace API_Core.Hosts.CB01
                 Console.WriteLine(ex.InnerException.Message);
                 return null;
             }
-            return null;
         }
     }
 }

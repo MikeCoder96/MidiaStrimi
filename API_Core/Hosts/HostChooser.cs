@@ -17,8 +17,6 @@ namespace API_Core.Hosts
                 default:
                     return new CB01_Wrapper();
             }
-                
-            return null;
         }
     }
 }
