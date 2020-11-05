@@ -1,0 +1,10 @@
+
+midiastrimi_cli/bin/
+
+midiastrimi_cli/obj/
+
+API_Core/bin/
+
+API_Core/obj/
+
+.vs/
