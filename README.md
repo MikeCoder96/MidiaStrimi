@@ -37,7 +37,7 @@ Here a list of TODO:
 
 MidiaStrimi is currently extended with the following NuGet pextension. Instructions on how to use them in your own application are linked below.
 
-| NuGet Packets | WebPage |
+| NuGet Package | WebPage |
 | ------ | ------ |
 | CloudFlareUtilities | [https://github.com/elcattivo/CloudFlareUtilities][PlDb] |
 | HTMLAgilityPack | [https://html-agility-pack.net/][PlGh] |
