@@ -1,6 +1,6 @@
 # MidiaStrimi
 
-[![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/dwyl/esta/issues)
+[![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/MikeCoder96/MidiaStrimi/issues)
 
 
 MidiaStrimi born with the idea of watch movie from some websites without take a virus from any type of Ads. Actually the supported website are:
