@@ -39,8 +39,8 @@ MidiaStrimi is currently extended with the following NuGet pextension. Instructi
 
 | NuGet Package | WebPage |
 | ------ | ------ |
-| CloudFlareUtilities | [https://github.com/elcattivo/CloudFlareUtilities][PlDb] |
-| HTMLAgilityPack | [https://html-agility-pack.net/][PlGh] |
+| CloudFlareUtilities | [https://github.com/elcattivo/CloudFlareUtilities] |
+| HTMLAgilityPack | [https://html-agility-pack.net/] |
 
 
 ### Development
