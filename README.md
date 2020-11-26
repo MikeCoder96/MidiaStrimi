@@ -11,7 +11,7 @@ MidiaStrimi born with the idea of watch movie from some websites without take a 
 
 #### .NET Core!
 
-to keep this cross-platform we thought about using .NET Core that is already cross-platform (OSX, Linux, Windows) and we think to bring it on Android and IOS Devices.
+to keep this cross-platform we thought about using .NET Core that is already cross-platform (OSX, Linux, Windows) and we think to bring it on Android and IOS Devices in the future.
 
 #### What you can do actually?
 
