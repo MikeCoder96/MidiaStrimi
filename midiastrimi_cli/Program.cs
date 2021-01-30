@@ -7,7 +7,7 @@ namespace midiastrimi_cli
 {
     class Program
     {
-        static MainClass mainClass = new MainClass();
+        static readonly MainClass mainClass = new MainClass();
         static void Main()
         {
             Console.WriteLine("Hi, i'm MidiaStrimi CLI and i'm here to help you!\n" +

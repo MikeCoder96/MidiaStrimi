@@ -13,11 +13,22 @@ namespace API_Core.Hosts.Websites
         private string retrieveLink()
         {
             if (actual_url == null) {
-                WebClient test = new WebClient();
-                var extr = test.DownloadString("https://www.cb01.community/");
-                HtmlAgilityPack.HtmlDocument doctodown = new HtmlAgilityPack.HtmlDocument();
-                doctodown.LoadHtml(extr);
-                actual_url =  doctodown.DocumentNode.SelectNodes("/html/body/div/h2/a/b")[0].InnerText;
+                try
+                {
+                    IWebProxy defWebProxy = WebRequest.DefaultWebProxy;
+                    defWebProxy.Credentials = CredentialCache.DefaultCredentials;
+
+                    WebClient test = new WebClient { Proxy = defWebProxy };
+                    var extr = test.DownloadString("https://www.cb01.community/");
+                    HtmlAgilityPack.HtmlDocument doctodown = new HtmlAgilityPack.HtmlDocument();
+                    doctodown.LoadHtml(extr);
+                    actual_url = doctodown.DocumentNode.SelectNodes("/html/body/div/h2/a/b")[0].InnerText;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+                
             }
             return actual_url;
         }
@@ -55,7 +66,7 @@ namespace API_Core.Hosts.Websites
                         string MovieTitle = node.Descendants("h3").FirstOrDefault().InnerText;
                         string DescriptionData = node.Descendants("p").FirstOrDefault().InnerText;
 
-                        mvList.Add(new Movie(WebUtility.HtmlDecode(MovieTitle), WebUtility.HtmlDecode(DescriptionData), MovieLink));
+                        mvList.Add(new Movie(WebUtility.HtmlDecode(MovieTitle), WebUtility.HtmlDecode(DescriptionData), ImageLink, MovieLink));
                     }
                     int suc = i + 1;
                     title = title.Replace("/" + i + "/", "/" + suc + "/");
@@ -70,7 +81,46 @@ namespace API_Core.Hosts.Websites
         }
         public override void retrieveStreamLinks(Movie movie)
         {
+            try
+            {
+                var target = movie.getMoviePageLink();
+                var handler = new ClearanceHandler();
+                var client = new HttpClient(handler);
+                var content = client.GetStringAsync(target);
+                HtmlAgilityPack.HtmlDocument htmlDoc = new HtmlAgilityPack.HtmlDocument();
+                htmlDoc.LoadHtml(content.Result);
+                var nodes = htmlDoc.DocumentNode.SelectNodes("//table[contains(@class, 'tableinside')]");
+                if (nodes == null)
+                {
+                    return;
+                }
 
+                target = movie.getMoviePageLink();
+                handler = new ClearanceHandler();
+                client = new HttpClient(handler);
+                content = client.GetStringAsync(target);
+                htmlDoc = new HtmlAgilityPack.HtmlDocument();
+                htmlDoc.LoadHtml(content.Result);
+                nodes = htmlDoc.DocumentNode.SelectNodes("//table[contains(@class, 'tableinside')]");
+                foreach (HtmlAgilityPack.HtmlNode node in nodes)
+                {
+                    try
+                    {
+                        if (node.SelectSingleNode(".//a") == null)
+                            continue;
+
+                        string link = node.SelectSingleNode(".//a").Attributes["href"].Value;
+                        if (link.StartsWith("https") || link.StartsWith("http"))
+                            movie.addLink(link);    
+                    }
+                    catch { }
+                }
+                
+            }
+            catch (AggregateException ex) when (ex.InnerException is CloudFlareClearanceException)
+            {
+                Console.WriteLine(ex.InnerException.Message);
+            }
         }
     }
 }

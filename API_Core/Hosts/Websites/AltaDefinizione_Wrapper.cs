@@ -57,7 +57,7 @@ namespace API_Core.Hosts.Websites
 
                     string movieTitle = WebUtility.HtmlDecode(WebUtility.HtmlDecode(finalTitle));
 
-                    tmp.Add(new Movie(movieTitle, "NO DESCRIPTION", movieLink));
+                    tmp.Add(new Movie(movieTitle, "NO DESCRIPTION", null, movieLink));
                 }
                 return tmp;
             }

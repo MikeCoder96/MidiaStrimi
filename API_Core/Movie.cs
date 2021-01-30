@@ -8,20 +8,27 @@ namespace API_Core
     {
         private readonly string movieTitle;
         private readonly string movieDescription;
+        private readonly string movieImage;
         private readonly Uri pageLink;
-        private List<string> streamLinks;
+        private readonly List<string> streamLinks;
 
-        public Movie(string s_movieTitle, string s_movieDescription, Uri s_pageLink)
+        public Movie(string s_movieTitle, string s_movieDescription, string s_movieImage, Uri s_pageLink)
         {
             this.movieTitle = s_movieTitle;
             this.movieDescription = s_movieDescription;
             this.pageLink = s_pageLink;
+            this.movieImage = s_movieImage;
             this.streamLinks = new List<string>();
         }
 
         public string getMovieTitle()
         {
             return this.movieTitle;
+        }
+
+        public string getMovieImage()
+        {
+            return this.movieImage;
         }
 
         public string getMovieDesc()
