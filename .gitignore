@@ -3,6 +3,12 @@ midiastrimi_cli/bin/
 
 midiastrimi_cli/obj/
 
+midiastrimi_cli/Properties/
+
+midiastrimi_webServer/bin/
+
+midiastrimi_webServer/obj/
+
 API_Core/bin/
 
 API_Core/obj/
