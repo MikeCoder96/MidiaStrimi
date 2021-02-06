@@ -4,13 +4,25 @@ using System.Text;
 
 namespace API_Core
 {
+    public class stream
+    {
+        public string provider { get; set; }
+        public string link { get; set; }
+
+        public stream(string provider, string link)
+        {
+            this.provider = provider;
+            this.link = link;
+        }
+    }
+
     public class Movie
     {
-        private readonly string movieTitle;
-        private readonly string movieDescription;
-        private readonly string movieImage;
-        private readonly Uri pageLink;
-        private readonly List<string> streamLinks;
+        public string movieTitle { get; set; }
+        public string movieDescription { get; set; }
+        public string movieImage { get; set; }
+        public Uri pageLink { get; set; }
+        public List<stream> streamLinks { get; set; }
 
         public Movie(string s_movieTitle, string s_movieDescription, string s_movieImage, Uri s_pageLink)
         {
@@ -18,7 +30,7 @@ namespace API_Core
             this.movieDescription = s_movieDescription;
             this.pageLink = s_pageLink;
             this.movieImage = s_movieImage;
-            this.streamLinks = new List<string>();
+            this.streamLinks = new List<stream> ();
         }
 
         public string getMovieTitle()
@@ -41,11 +53,11 @@ namespace API_Core
             return this.pageLink;
         }
 
-        public void addLink(string link) {
-            this.streamLinks.Add(link);
+        public void addLink(string provider, string link) {
+            this.streamLinks.Add(new stream(provider, link));
         }
 
-        public List<string> getStreams() {
+        public List<stream> getStreams() {
             return this.streamLinks;
         }
     }

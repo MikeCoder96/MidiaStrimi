@@ -79,6 +79,50 @@ namespace API_Core.Hosts.Websites
                 return null;
             }
         }
+
+        public override List<Movie> retreiveTopMovies()
+        {
+            string title = retrieveLink();
+            List<Movie> mvList = new List<Movie>();
+            int lastPage = 1;
+            try
+            {
+                var target = new Uri(title);
+                var handler = new ClearanceHandler();
+                var client = new HttpClient(handler);
+                var content = client.GetStringAsync(target);
+                HtmlAgilityPack.HtmlDocument htmlDoc = new HtmlAgilityPack.HtmlDocument();
+                htmlDoc.LoadHtml(content.Result);
+                var node = htmlDoc.DocumentNode.SelectSingleNode("//div[contains(@class, 'wa_chpcs_image_carousel')]");
+                if (node == null)
+                    return null;
+
+                target = new Uri(title);
+                handler = new ClearanceHandler();
+                client = new HttpClient(handler);
+                content = client.GetStringAsync(target);
+                htmlDoc = new HtmlAgilityPack.HtmlDocument();
+                htmlDoc.LoadHtml(content.Result);
+                var nodes = htmlDoc.DocumentNode.SelectNodes("//li[contains(@id, 'wa_chpcs_foo_content')]");
+                foreach (HtmlAgilityPack.HtmlNode nod in nodes)
+                {
+                    var res = nod.FirstChild;
+                    string ImageLink = res.Descendants("img").FirstOrDefault().Attributes["src"].Value;
+                    Uri MovieLink = new Uri(res.Descendants("a").FirstOrDefault().Attributes[0].Value);
+                    string MovieTitle = res.Descendants("img").FirstOrDefault().Attributes[0].Value;
+                    string DescriptionData = "";
+                    mvList.Add(new Movie(WebUtility.HtmlDecode(MovieTitle), WebUtility.HtmlDecode(DescriptionData), ImageLink, MovieLink));
+                }
+
+                return mvList;
+            }
+            catch (AggregateException ex) when (ex.InnerException is CloudFlareClearanceException)
+            {
+                Console.WriteLine(ex.InnerException.Message);
+                return null;
+            }
+        }
+
         public override void retrieveStreamLinks(Movie movie)
         {
             try
@@ -101,17 +145,34 @@ namespace API_Core.Hosts.Websites
                 content = client.GetStringAsync(target);
                 htmlDoc = new HtmlAgilityPack.HtmlDocument();
                 htmlDoc.LoadHtml(content.Result);
-                nodes = htmlDoc.DocumentNode.SelectNodes("//table[contains(@class, 'tableinside')]");
+                nodes = htmlDoc.DocumentNode.SelectNodes("//table[contains(@class, 'tableinside') or contains(@class, 'cbtable')]");
+                bool HD = false;
                 foreach (HtmlAgilityPack.HtmlNode node in nodes)
                 {
                     try
                     {
+                        if (node.InnerText.ToLower().Contains("download:") && node.InnerText.ToLower().Contains("streaming:"))
+                            continue;
+
+                        else if (node.InnerText.ToLower().Contains("streaming hd:"))
+                            HD = true;
+
+                        else if (node.InnerText.ToLower().Contains("download:"))
+                            break;
+
                         if (node.SelectSingleNode(".//a") == null)
                             continue;
 
                         string link = node.SelectSingleNode(".//a").Attributes["href"].Value;
+
+                        string provider = "";
+                        if(HD)
+                            provider = "[HD] " + node.SelectSingleNode(".//a").InnerText;
+                        else
+                            provider = node.SelectSingleNode(".//a").InnerText;
+
                         if (link.StartsWith("https") || link.StartsWith("http"))
-                            movie.addLink(link);    
+                            movie.addLink(provider, link);    
                     }
                     catch { }
                 }

@@ -23,5 +23,10 @@ namespace API_Core
         {
             providerChoosed.retrieveStreamLinks(movie);
         }
+
+        public List<Movie> getTopList()
+        {
+            return providerChoosed.retreiveTopMovies();
+        }
     }
 }

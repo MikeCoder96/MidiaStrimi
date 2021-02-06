@@ -5,6 +5,8 @@ midiastrimi_cli/obj/
 
 midiastrimi_cli/Properties/
 
+midiastrimi_webServer/
+
 midiastrimi_webServer/bin/
 
 midiastrimi_webServer/obj/
@@ -16,3 +18,5 @@ API_Core/obj/
 .vs/
 
 .vscode/
+
+MidiaStrimi.sln

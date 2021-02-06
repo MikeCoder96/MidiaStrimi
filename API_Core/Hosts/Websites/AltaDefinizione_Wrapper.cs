@@ -24,6 +24,12 @@ namespace API_Core.Hosts.Websites
             }
             return actual_url;
         }
+
+        public override List<Movie> retreiveTopMovies()
+        {
+            return null;
+        }
+
         public override List<Movie> searchMovie(string tmp_title)
         {
             var target = new Uri("https://" + retrieveLink() + "/?s=" + tmp_title);
@@ -107,7 +113,7 @@ namespace API_Core.Hosts.Websites
                     var nodo_1 = htmlDoc_1.DocumentNode.SelectSingleNode("/html/body/div[3]/iframe");
                     byte[] data = System.Convert.FromBase64String(nodo_1.Attributes[1].Value);
                     string FinalUrl = System.Text.ASCIIEncoding.ASCII.GetString(data);
-                    movie.addLink(FinalUrl);
+                    movie.addLink(null, FinalUrl);
                 }
             }
             catch (AggregateException ex) when (ex.InnerException is CloudFlareClearanceException)
