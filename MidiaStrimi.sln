@@ -7,8 +7,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "API_Core", "API_Core\API_Co
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "midiastrimi_cli", "midiastrimi_cli\midiastrimi_cli.csproj", "{6024FAE3-5806-445B-B797-D6E20B5D4F55}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "midiastrimi_webServer", "midiastrimi_webServer\midiastrimi_webServer.csproj", "{AB26D251-B6A1-45BB-974C-05805295C50C}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
