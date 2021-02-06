@@ -42,12 +42,11 @@ namespace API_Core.Hosts.Websites
                 var content = client.GetStringAsync(target).Result;
                 HtmlAgilityPack.HtmlDocument htmlDoc = new HtmlAgilityPack.HtmlDocument();
                 htmlDoc.LoadHtml(content);
-                var nodes = htmlDoc.DocumentNode.SelectNodes("//section[contains(@id, 'lastUpdate')]");
-                if (nodes == null)
-                {
+                var nodeSelected = htmlDoc.DocumentNode.SelectSingleNode("//section[contains(@id, 'lastUpdate')]");
+                if (nodeSelected == null)
                     return null;
-                }
-                foreach (HtmlAgilityPack.HtmlNode node in nodes[0].ChildNodes[1].ChildNodes)
+                
+                foreach (HtmlAgilityPack.HtmlNode node in nodeSelected.SelectNodes("//div[contains(@class, 'col-lg-3 col-md-4')]"))
                 {
                     string imageLink = node.Descendants("img").FirstOrDefault().Attributes["src"].Value;
                     Uri movieLink = new Uri(node.Descendants("a").FirstOrDefault().Attributes[0].Value);
@@ -71,6 +70,20 @@ namespace API_Core.Hosts.Websites
 
             return null;
         }
+
+        public string getBetween(string strSource, string strStart, string strEnd)
+        {
+            if (strSource.Contains(strStart) && strSource.Contains(strEnd))
+            {
+                int Start, End;
+                Start = strSource.IndexOf(strStart, 0) + strStart.Length;
+                End = strSource.IndexOf(strEnd, Start);
+                return strSource.Substring(Start, End - Start);
+            }
+
+            return "";
+        }
+
         public override void retrieveStreamLinks(Movie movie)
         {
             var target = movie.getMoviePageLink();
@@ -104,16 +117,28 @@ namespace API_Core.Hosts.Websites
                 for (int i = 1; i < nds.Count; i += 2)
                 {
                     var target_1 = new Uri(WebUtility.HtmlDecode(nds[i].ChildNodes[0].Attributes[0].Value).Replace("&alta=", "&play_chosen="));
+                    var providerInt = int.Parse(getBetween(nds[i].ChildNodes[0].Attributes[0].Value, "host=", "&"));
                     var handler_1 = new ClearanceHandler();
                     var client_1 = new HttpClient(handler_1);
 
                     var content_1 = client.GetStringAsync(target_1);
                     var htmlDoc_1 = new HtmlAgilityPack.HtmlDocument();
                     htmlDoc_1.LoadHtml(content_1.Result);
-                    var nodo_1 = htmlDoc_1.DocumentNode.SelectSingleNode("/html/body/div[3]/iframe");
-                    byte[] data = System.Convert.FromBase64String(nodo_1.Attributes[1].Value);
-                    string FinalUrl = System.Text.ASCIIEncoding.ASCII.GetString(data);
-                    movie.addLink(null, FinalUrl);
+                    var nodo_1 = htmlDoc_1.DocumentNode.SelectSingleNode("//*[@id=\"main-player-wrapper\"]/iframe");
+                    string FinalUrl = "";
+                    string provider = htmlDoc_1.DocumentNode.SelectSingleNode("//*[@id=\"host-" + providerInt.ToString() + "\"]").FirstChild.InnerText;
+                    try
+                    {
+                        byte[] data = System.Convert.FromBase64String(nodo_1.Attributes[1].Value);
+                        FinalUrl = System.Text.ASCIIEncoding.ASCII.GetString(data);
+                    }
+                    catch
+                    {
+
+                        FinalUrl = nodo_1.Attributes[1].Value;
+                    }
+
+                    movie.addLink(provider, FinalUrl);
                 }
             }
             catch (AggregateException ex) when (ex.InnerException is CloudFlareClearanceException)
