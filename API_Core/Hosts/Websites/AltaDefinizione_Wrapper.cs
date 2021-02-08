@@ -25,6 +25,11 @@ namespace API_Core.Hosts.Websites
             return actual_url;
         }
 
+        ~AltaDefinizione_Wrapper()
+        {
+            Console.WriteLine("Host is not required anymore");
+        }
+
         public override List<Movie> retreiveTopMovies()
         {
             return null;

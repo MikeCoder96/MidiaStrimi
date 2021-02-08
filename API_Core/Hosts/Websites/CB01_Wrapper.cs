@@ -123,6 +123,11 @@ namespace API_Core.Hosts.Websites
             }
         }
 
+        ~CB01_Wrapper()
+        {
+            Console.WriteLine("Host is not required anymore");
+        }
+
         public override void retrieveStreamLinks(Movie movie)
         {
             try
