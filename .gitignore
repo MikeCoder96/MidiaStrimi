@@ -9,7 +9,13 @@ midiastrimi_webServer/
 
 midiastrimi_webServer/bin/
 
+midiastrimi_python_webServer/bin/
+
 midiastrimi_webServer/obj/
+
+midiastrimi_python_webServer/obj/
+
+midiastrimi_python_webServer/
 
 API_Core/bin/
 

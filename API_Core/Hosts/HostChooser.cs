@@ -12,6 +12,8 @@ namespace API_Core.Hosts
                     return new CB01_Wrapper();
                 case 2:
                     return new AltaDefinizione_Wrapper();
+                case 3:
+                    return new YesMovies_Wrapper();
                 default:
                     return new CB01_Wrapper();
             }
