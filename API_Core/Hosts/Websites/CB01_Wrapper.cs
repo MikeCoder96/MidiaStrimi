@@ -32,6 +32,84 @@ namespace API_Core.Hosts.Websites
             }
             return actual_url;
         }
+
+        public override List<TvSerie> searchTvSeries(string tmp_title)
+        {
+            string title = retrieveLink() + "/serietv/?s=" + tmp_title;
+            List<TvSerie> tvList = new List<TvSerie>();
+            try
+            {
+                var target = new Uri(title);
+                var handler = new ClearanceHandler();
+                var client = new HttpClient(handler);
+                var content = client.GetStringAsync(target);
+                HtmlAgilityPack.HtmlDocument htmlDoc = new HtmlAgilityPack.HtmlDocument();
+                htmlDoc.LoadHtml(content.Result);
+                var nodes = htmlDoc.DocumentNode.SelectNodes("//div[contains(@class, 'post-')]");
+                if (nodes == null)
+                {
+                    return null;
+                }
+                foreach (HtmlAgilityPack.HtmlNode node in nodes)
+                {
+                    string ImageLink = node.Descendants("img").FirstOrDefault().Attributes["src"].Value;
+                    Uri MovieLink = new Uri(node.Descendants("a").FirstOrDefault().Attributes[0].Value);
+                    string MovieTitle = node.Descendants("h3").FirstOrDefault().InnerText;
+                    string DescriptionData = "NO DESCRIPTION"; //TODO: Adding the right xpath to get text
+
+                    tvList.Add(new TvSerie(WebUtility.HtmlDecode(MovieTitle), WebUtility.HtmlDecode(DescriptionData), ImageLink, MovieLink));
+                }
+                return tvList;
+            }
+            catch (AggregateException ex) when (ex.InnerException is CloudFlareClearanceException)
+            {
+                Console.WriteLine(ex.InnerException.Message);
+                return null;
+            }
+        }
+
+        public override void retrieveTvStreamLinks(TvSerie serie)
+        {
+            try
+            {
+                var target = serie.getSeriePageLink();
+                var handler = new ClearanceHandler();
+                var client = new HttpClient(handler);
+                var content = client.GetStringAsync(target);
+                HtmlAgilityPack.HtmlDocument htmlDoc = new HtmlAgilityPack.HtmlDocument();
+                htmlDoc.LoadHtml(content.Result);
+                var node = htmlDoc.DocumentNode.SelectNodes("//*[@id=\"sequex-main-inner\"]/div[1]/article/div[1]/table[1]/tbody/tr/td/div/div[2]");
+                if (node == null)
+                    return;
+                foreach (var parent in node)
+                {
+                    foreach (var toAnalyze in parent.ChildNodes)
+                    {
+                        if (toAnalyze.InnerHtml.ToLower().Contains("stayonline"))
+                        {
+                            string episode = WebUtility.HtmlDecode(toAnalyze.ChildNodes.FirstOrDefault().InnerText).Replace(" -", "");
+                            List<(string, string)> links = new List<(string, string)>();
+                            for (int i = 1; i < toAnalyze.ChildNodes.Count; i++)
+                            {
+                                if (!toAnalyze.ChildNodes[i].Name.ToLower().Contains("text"))
+                                {
+                                    string provider = toAnalyze.ChildNodes[i].InnerText;
+                                    string link = toAnalyze.ChildNodes[i].Attributes[0].Value;
+                                    links.Add((provider, link));
+                                }
+                            }
+                            serie.addLink(episode, links);
+                        }
+                    }
+                }
+                
+            }
+            catch (AggregateException ex) when (ex.InnerException is CloudFlareClearanceException)
+            {
+                Console.WriteLine(ex.InnerException.Message);
+            }
+        }
+
         public override List<Movie> searchMovie(string tmp_title)
         {
             string title = retrieveLink() + "/page/1/?s=" + tmp_title;
@@ -84,7 +162,6 @@ namespace API_Core.Hosts.Websites
         {
             string title = retrieveLink();
             List<Movie> mvList = new List<Movie>();
-            int lastPage = 1;
             try
             {
                 var target = new Uri(title);
@@ -138,19 +215,11 @@ namespace API_Core.Hosts.Websites
                 var content = client.GetStringAsync(target);
                 HtmlAgilityPack.HtmlDocument htmlDoc = new HtmlAgilityPack.HtmlDocument();
                 htmlDoc.LoadHtml(content.Result);
-                var nodes = htmlDoc.DocumentNode.SelectNodes("//table[contains(@class, 'tableinside')]");
+                var nodes = htmlDoc.DocumentNode.SelectNodes("//table[contains(@class, 'tableinside') or contains(@class, 'cbtable')]");
                 if (nodes == null)
                 {
                     return;
                 }
-
-                target = movie.getMoviePageLink();
-                handler = new ClearanceHandler();
-                client = new HttpClient(handler);
-                content = client.GetStringAsync(target);
-                htmlDoc = new HtmlAgilityPack.HtmlDocument();
-                htmlDoc.LoadHtml(content.Result);
-                nodes = htmlDoc.DocumentNode.SelectNodes("//table[contains(@class, 'tableinside') or contains(@class, 'cbtable')]");
                 bool HD = false;
                 foreach (HtmlAgilityPack.HtmlNode node in nodes)
                 {

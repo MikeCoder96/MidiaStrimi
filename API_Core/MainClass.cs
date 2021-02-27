@@ -28,9 +28,20 @@ namespace API_Core
             return res;
         }
 
+        public List<TvSerie> getSeriesWithTitle(string serie)
+        {
+            var res = providerChoosed.searchTvSeries(serie);
+            return res;
+        }
+
         public void getStreamList(Movie movie)
         {
             providerChoosed.retrieveStreamLinks(movie);
+        }
+
+        public void getTvStreamList(TvSerie serie)
+        {
+            providerChoosed.retrieveTvStreamLinks(serie);
         }
 
         public List<Movie> getTopList()

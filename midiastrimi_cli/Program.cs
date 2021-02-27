@@ -15,50 +15,94 @@ namespace midiastrimi_cli
             {
                 Console.Write("Choose your provider: ");
                 int provider = int.Parse(Console.ReadLine());
-                Console.WriteLine("Search movie(1) or get topList(2)");
+                Console.WriteLine("Search movie(1), get topList(2), series(3)");
                 Console.Write("Your input: ");
                 int option = int.Parse(Console.ReadLine());
                 mainClass.initialize(provider);
-                if (option == 1)
-                {
-                    Console.Write("Please insert a movie title: ");
-                    string movieTitle = Console.ReadLine();
-                    List<Movie> retrieved = mainClass.getMovieWithTitle(movieTitle);
 
-                    int index = 0;
-                    foreach (var x in retrieved)
-                    {
-                        Console.WriteLine("\nChoice: " + index++.ToString());
-                        Console.WriteLine("Title: " + x.getMovieTitle());
-                        int charCounter = 0;
-                        Console.Write('\t');                                                                              //CB01 strange whitespaces.....
-                        string to_print = x.getMovieDesc().Replace("\r", "").Replace("\n", "").Replace("\t", "").Replace("                                                                                               ", " ");
-                        for (int i = 0; i < to_print.Length; i++)
+                switch (option)
+                {
+                    case 1:
+                        Console.Write("Please insert a movie title: ");
+                        string movieTitle = Console.ReadLine();
+                        List<Movie> movieRetrieved = mainClass.getMovieWithTitle(movieTitle);
+
+                        int movieIndex = 0;
+                        foreach (var x in movieRetrieved)
                         {
-                            Console.Write(to_print[i]);
-                            charCounter++;
-                            if (charCounter == 97)
+                            Console.WriteLine("\nChoice: " + movieIndex++.ToString());
+                            Console.WriteLine("Title: " + x.getMovieTitle());
+                            int charCounter = 0;
+                            Console.Write('\t');                                                                              //CB01 strange whitespaces.....
+                            string to_print = x.getMovieDesc().Replace("\r", "").Replace("\n", "").Replace("\t", "").Replace("                                                                                               ", " ");
+                            for (int i = 0; i < to_print.Length; i++)
                             {
-                                Console.WriteLine();
-                                charCounter = 0;
-                                Console.Write('\t');
+                                Console.Write(to_print[i]);
+                                charCounter++;
+                                if (charCounter == 97)
+                                {
+                                    Console.WriteLine();
+                                    charCounter = 0;
+                                    Console.Write('\t');
+                                }
+                            }
+                            Console.WriteLine("\n");
+                        }
+                        Console.Write("Your choice: ");
+                        int choiceM = int.Parse(Console.ReadLine());
+                        mainClass.getStreamList(movieRetrieved[choiceM]);
+                        Console.WriteLine("Here your stream links:");
+                        foreach (var x in movieRetrieved[choiceM].getStreams())
+                        {
+                            Console.WriteLine("\t" + x.link);
+                        }
+                        break;
+                    case 2:
+                        //Test for top list CB01 actually
+                        mainClass.getTopList();
+                        break;
+                    case 3:
+                        Console.Write("Please insert a series tv title: ");
+                        var toSearch = Console.ReadLine();
+                        var seriesRetrieved = mainClass.getSeriesWithTitle(toSearch);
+                        int seriesIndex = 0;
+                        foreach (var x in seriesRetrieved)
+                        {
+                            Console.WriteLine("\nChoice: " + seriesIndex++.ToString());
+                            Console.WriteLine("Title: " + x.getSerieTitle());
+                            int charCounter = 0;
+                            Console.Write('\t');                                                                              //CB01 strange whitespaces.....
+                            string to_print = x.getSerieDesc().Replace("\r", "").Replace("\n", "").Replace("\t", "").Replace("                                                                                               ", " ");
+                            for (int i = 0; i < to_print.Length; i++)
+                            {
+                                Console.Write(to_print[i]);
+                                charCounter++;
+                                if (charCounter == 97)
+                                {
+                                    Console.WriteLine();
+                                    charCounter = 0;
+                                    Console.Write('\t');
+                                }
+                            }
+                            Console.WriteLine("\n");
+                        }
+                        Console.Write("Your choice: ");
+                        int choiceS = int.Parse(Console.ReadLine());
+                        mainClass.getTvStreamList(seriesRetrieved[choiceS]);
+                        Console.WriteLine("Here your stream links:");
+                        foreach (var x in seriesRetrieved[choiceS].getStreams())
+                        {
+                            Console.WriteLine(x.episode);
+                            foreach (var y in x.links)
+                            {
+                                Console.WriteLine(y.Item1 + "  " + y.Item2);
                             }
                         }
-                        Console.WriteLine("\n");
-                    }
-                    Console.Write("Your choice: ");
-                    int choiceI = int.Parse(Console.ReadLine());
-                    mainClass.getStreamList(retrieved[choiceI]);
-                    Console.WriteLine("Here your stream links:");
-                    foreach (var x in retrieved[choiceI].getStreams())
-                    {
-                        Console.WriteLine("\t" + x.link);
-                    }
-                }
-                else
-                {
-                    //Test for top list CB01 actually
-                    mainClass.getTopList();
+                        break;
+
+                    default:
+                        Console.WriteLine("Wrong choice!!");
+                        break;
                 }
             }
         }

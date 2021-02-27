@@ -24,6 +24,16 @@ namespace API_Core.Hosts.Websites
             return null;
         }
 
+        public override void retrieveTvStreamLinks(TvSerie serie)
+        {
+            //TODO
+        }
+
+        public override List<TvSerie> searchTvSeries(string tmp_title)
+        {
+            return null;
+        }
+
         public override List<Movie> searchMovie(string tmp_title)
         {
             var target = new Uri(retrieveLink() + "searching/" + tmp_title + ".html");
@@ -39,7 +49,7 @@ namespace API_Core.Hosts.Websites
                 
                 return tmp;
             }
-            catch (Exception ex) 
+            catch
             {  }
 
             return null;
