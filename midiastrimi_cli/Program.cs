@@ -95,7 +95,7 @@ namespace midiastrimi_cli
                             Console.WriteLine(x.episode);
                             foreach (var y in x.links)
                             {
-                                Console.WriteLine(y.Item1 + "  " + y.Item2);
+                                Console.WriteLine(y.Key + "  " + y.Value);
                             }
                         }
                         break;

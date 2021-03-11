@@ -21,15 +21,19 @@ namespace API_Core
         public string movieTitle { get; set; }
         public string movieDescription { get; set; }
         public string movieImage { get; set; }
+        public int movieProvider { get; set; }
+        public string movieScore { get; set; }
         public Uri pageLink { get; set; }
         public List<stream> streamLinks { get; set; }
 
-        public Movie(string s_movieTitle, string s_movieDescription, string s_movieImage, Uri s_pageLink)
+        public Movie(string s_movieTitle, string s_movieDescription, int i_movieProvider, string s_movieImage, Uri s_pageLink, string s_movieScore = "N/A")
         {
             this.movieTitle = s_movieTitle;
             this.movieDescription = s_movieDescription;
             this.pageLink = s_pageLink;
+            this.movieProvider = i_movieProvider;
             this.movieImage = s_movieImage;
+            this.movieScore = s_movieScore;
             this.streamLinks = new List<stream> ();
         }
 

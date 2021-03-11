@@ -10,37 +10,51 @@ namespace API_Core.Hosts.Websites
 {
     class AltaDefinizione_Wrapper : AbstractStreamPage
     {
-        private string actual_url = null;
+        private string actual_url_movie = null;
+        private string actual_url_serie = null;
         private string retrieveLinkMovies()
         {
-            if (actual_url == null)
+            if (actual_url_movie == null)
             {
                 WebClient test = new WebClient();
                 var extr = test.DownloadString("https://altadefinizione-nuovo.link");
                 HtmlAgilityPack.HtmlDocument doctodown = new HtmlAgilityPack.HtmlDocument();
                 doctodown.LoadHtml(extr);
                 var NodesLink = doctodown.DocumentNode.SelectNodes("/html/body/div[1]/div/div/section[2]/div/div/div/div/div/section/div/div/div[2]/div/div/div[2]/div/h2/a");
-                actual_url = NodesLink[0].Attributes.FirstOrDefault().Value;
+                actual_url_movie = NodesLink[0].Attributes.FirstOrDefault().Value;
             }
-            return actual_url;
+            return actual_url_movie;
         }
         private string retrieveLinkSeries()
         {
-            if (actual_url == null)
+            if (actual_url_serie == null)
             {
                 WebClient test = new WebClient();
                 var extr = test.DownloadString("https://nuovoindirizzo.info/seriehd/");
                 HtmlAgilityPack.HtmlDocument doctodown = new HtmlAgilityPack.HtmlDocument();
                 doctodown.LoadHtml(extr);
                 var NodesLink = doctodown.DocumentNode.SelectNodes("/html/body/div[1]/div/div/section[2]/div/div/div/div/div/section/div/div/div[2]/div/div/div[2]/div/h2/a");
-                actual_url = NodesLink[0].Attributes.FirstOrDefault().Value;
+                actual_url_serie = NodesLink[0].Attributes.FirstOrDefault().Value;
             }
-            return actual_url;
+            return actual_url_serie;
         }
 
         public override void retrieveTvStreamLinks(TvSerie serie)
         {
-            return;
+            var handler = new ClearanceHandler();
+            var client = new HttpClient(handler);
+            try
+            {
+                var content = client.GetStringAsync(serie.getSeriePageLink()).Result;
+                HtmlAgilityPack.HtmlDocument htmlDoc = new HtmlAgilityPack.HtmlDocument();
+                htmlDoc.LoadHtml(content);
+                var nodeSelected = htmlDoc.DocumentNode.SelectSingleNode("//*[@id=\"iframeVid\"]");
+                Dictionary<string, string> tmp = new Dictionary<string, string>();
+                tmp.Add("MainPanel", nodeSelected.Attributes[3].Value);
+                serie.addLink("All Episodes", tmp);
+                return;
+            }
+            catch { }
         }
 
         ~AltaDefinizione_Wrapper()
@@ -50,7 +64,39 @@ namespace API_Core.Hosts.Websites
 
         public override List<Movie> retreiveTopMovies()
         {
-            return null;
+            //html/body/section[3]/div/div[2]/div[1]/div[2]/div/div[1]
+            string title = retrieveLinkMovies();
+            try
+            {
+                var target = new Uri(title);
+                var handler = new ClearanceHandler();
+                var client = new HttpClient(handler);
+                var content = client.GetStringAsync(target);
+                HtmlAgilityPack.HtmlDocument htmlDoc = new HtmlAgilityPack.HtmlDocument();
+                htmlDoc.LoadHtml(content.Result);
+                var node = htmlDoc.DocumentNode.SelectSingleNode("/html/body/section[3]/div/div[2]/div[1]/div[2]/div/div[1]");
+                if (node == null)
+                    return null;
+                var nodes = node.ChildNodes.FirstOrDefault().ChildNodes;
+                List<Movie> tmp = new List<Movie>();
+                foreach (HtmlAgilityPack.HtmlNode nod in nodes)
+                {
+                    string imageLink = nod.Descendants("img").FirstOrDefault().Attributes["src"].Value;
+                    Uri movieLink = new Uri(nod.Descendants("a").FirstOrDefault().Attributes[0].Value);
+
+                    var toUtf = nod.Descendants("img").FirstOrDefault().Attributes["alt"].Value;
+                    string movieTitle = WebUtility.HtmlDecode(WebUtility.HtmlDecode(toUtf).Replace("streaming", ""));
+
+                    tmp.Add(new Movie(movieTitle, WebUtility.HtmlDecode(WebUtility.HtmlDecode(getMovieeDescr(movieLink))), 2, imageLink, movieLink));
+                }
+
+                return tmp;
+            }
+            catch (AggregateException ex) when (ex.InnerException is CloudFlareClearanceException)
+            {
+                Console.WriteLine(ex.InnerException.Message);
+                return null;
+            }
         }
 
         private string getSerieDescr(Uri link)
@@ -108,18 +154,11 @@ namespace API_Core.Hosts.Websites
                     string imageLink = node.Descendants("img").FirstOrDefault().Attributes["src"].Value;
                     Uri serieLink = new Uri(node.Descendants("a").FirstOrDefault().Attributes[0].Value);
 
-                    //Weird way to delete IMDB text
-                    string[] tmpTit = node.InnerText.Split();
-                    tmpTit = tmpTit.Where(x => !string.IsNullOrEmpty(x)).ToArray();
-                    tmpTit[tmpTit.Length - 1] = "";
-                    tmpTit[tmpTit.Length - 2] = "";
-                    tmpTit = tmpTit.Where(x => !string.IsNullOrEmpty(x)).ToArray();
-                    string finalTitle = string.Join(" ", tmpTit);
-                    //Dpn't be so rude with me boy..
+                    var toUTF = node.SelectSingleNode(".//div[contains(@class, 'infoSeries')]").ChildNodes[1].InnerText;
+                    var points = node.SelectSingleNode(".//span[contains(@class, 'imdb')]").FirstChild.InnerText;
+                    string serieTitle = WebUtility.HtmlDecode(WebUtility.HtmlDecode(toUTF));
 
-                    string serieTitle = WebUtility.HtmlDecode(WebUtility.HtmlDecode(finalTitle));
-
-                    tmp.Add(new TvSerie(serieTitle, getSerieDescr(serieLink), null, serieLink));
+                    tmp.Add(new TvSerie(serieTitle, getSerieDescr(serieLink), 2, imageLink, serieLink, points));
                 }
                 return tmp;
             }
@@ -151,11 +190,12 @@ namespace API_Core.Hosts.Websites
                     string imageLink = node.Descendants("img").FirstOrDefault().Attributes["src"].Value;
                     Uri movieLink = new Uri(node.Descendants("a").FirstOrDefault().Attributes[0].Value);
                     
-                    var toUtf = node.SelectNodes("//h5[contains(@class, 'titleFilm')]");
+                    var toUtf = node.SelectSingleNode(".//h5[contains(@class, 'titleFilm')]");
+                    var points = WebUtility.HtmlDecode(node.SelectSingleNode(".//div[contains(@class, 'imdb-rate')]").InnerText).Trim().Replace("IMDB:", "");
 
-                    string movieTitle = WebUtility.HtmlDecode(WebUtility.HtmlDecode(toUtf[indexTitle++].InnerText));
+                    string movieTitle = WebUtility.HtmlDecode(toUtf.InnerText);
 
-                    tmp.Add(new Movie(movieTitle, WebUtility.HtmlDecode(WebUtility.HtmlDecode(getMovieeDescr(movieLink))), null, movieLink));
+                    tmp.Add(new Movie(movieTitle, WebUtility.HtmlDecode(WebUtility.HtmlDecode(getMovieeDescr(movieLink))), 2, imageLink, movieLink, points));
                 }
                 return tmp;
             }

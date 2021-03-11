@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Text.RegularExpressions;
 
 namespace API_Core.Hosts.Websites
 {
@@ -33,6 +34,21 @@ namespace API_Core.Hosts.Websites
             return actual_url;
         }
 
+        private string cleanDescription(string toClean)
+        {
+            try
+            {
+                Regex to_check = new Regex(@"(?:\))(.*)(?:\s+)");
+                var htmlCleaned = WebUtility.HtmlDecode(toClean);
+                var result = to_check.Match(htmlCleaned).Groups[1].Value;
+                return result;
+            }
+            catch
+            {
+                return "NO DESCRIPTION";
+            }          
+        }
+
         public override List<TvSerie> searchTvSeries(string tmp_title)
         {
             string title = retrieveLink() + "/serietv/?s=" + tmp_title;
@@ -55,9 +71,9 @@ namespace API_Core.Hosts.Websites
                     string ImageLink = node.Descendants("img").FirstOrDefault().Attributes["src"].Value;
                     Uri MovieLink = new Uri(node.Descendants("a").FirstOrDefault().Attributes[0].Value);
                     string MovieTitle = node.Descendants("h3").FirstOrDefault().InnerText;
-                    string DescriptionData = "NO DESCRIPTION"; //TODO: Adding the right xpath to get text
+                    var DescriptionData = cleanDescription(node.ChildNodes[1].ChildNodes[3].InnerText);
 
-                    tvList.Add(new TvSerie(WebUtility.HtmlDecode(MovieTitle), WebUtility.HtmlDecode(DescriptionData), ImageLink, MovieLink));
+                    tvList.Add(new TvSerie(WebUtility.HtmlDecode(MovieTitle), DescriptionData, 1, ImageLink, MovieLink));
                 }
                 return tvList;
             }
@@ -88,14 +104,14 @@ namespace API_Core.Hosts.Websites
                         if (toAnalyze.InnerHtml.ToLower().Contains("stayonline"))
                         {
                             string episode = WebUtility.HtmlDecode(toAnalyze.ChildNodes.FirstOrDefault().InnerText).Replace(" -", "");
-                            List<(string, string)> links = new List<(string, string)>();
+                            Dictionary<string, string> links = new Dictionary<string, string>();
                             for (int i = 1; i < toAnalyze.ChildNodes.Count; i++)
                             {
                                 if (!toAnalyze.ChildNodes[i].Name.ToLower().Contains("text"))
                                 {
                                     string provider = toAnalyze.ChildNodes[i].InnerText;
                                     string link = toAnalyze.ChildNodes[i].Attributes[0].Value;
-                                    links.Add((provider, link));
+                                    links.Add(provider, link);
                                 }
                             }
                             serie.addLink(episode, links);
@@ -143,8 +159,9 @@ namespace API_Core.Hosts.Websites
                         Uri MovieLink = new Uri(node.Descendants("a").FirstOrDefault().Attributes[0].Value);
                         string MovieTitle = node.Descendants("h3").FirstOrDefault().InnerText;
                         string DescriptionData = node.Descendants("p").FirstOrDefault().InnerText;
+                        //var points = node.SelectSingleNode(".//div[contains(@id, 'pd_rating_holder_')]");
 
-                        mvList.Add(new Movie(WebUtility.HtmlDecode(MovieTitle), WebUtility.HtmlDecode(DescriptionData), ImageLink, MovieLink));
+                        mvList.Add(new Movie(WebUtility.HtmlDecode(MovieTitle), WebUtility.HtmlDecode(DescriptionData), 1, ImageLink, MovieLink));
                     }
                     int suc = i + 1;
                     title = title.Replace("/" + i + "/", "/" + suc + "/");
@@ -188,7 +205,7 @@ namespace API_Core.Hosts.Websites
                     Uri MovieLink = new Uri(res.Descendants("a").FirstOrDefault().Attributes[0].Value);
                     string MovieTitle = res.Descendants("img").FirstOrDefault().Attributes[0].Value;
                     string DescriptionData = "";
-                    mvList.Add(new Movie(WebUtility.HtmlDecode(MovieTitle), WebUtility.HtmlDecode(DescriptionData), ImageLink, MovieLink));
+                    mvList.Add(new Movie(WebUtility.HtmlDecode(MovieTitle), WebUtility.HtmlDecode(DescriptionData), 1, ImageLink, MovieLink));
                 }
 
                 return mvList;
