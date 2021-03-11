@@ -109,9 +109,15 @@ namespace API_Core.Hosts.Websites
                             {
                                 if (!toAnalyze.ChildNodes[i].Name.ToLower().Contains("text"))
                                 {
-                                    string provider = toAnalyze.ChildNodes[i].InnerText;
-                                    string link = toAnalyze.ChildNodes[i].Attributes[0].Value;
-                                    links.Add(provider, link);
+                                    //It need to be redone
+                                    try
+                                    {
+                                        string provider = toAnalyze.ChildNodes[i].InnerText;
+                                        string link = toAnalyze.ChildNodes[i].Attributes[0].Value;
+                                        links.Add(provider, link);
+                                    }
+                                    catch
+                                    { }
                                 }
                             }
                             serie.addLink(episode, links);
