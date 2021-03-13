@@ -1,10 +1,11 @@
-﻿using CloudFlareUtilities;
+﻿using CloudProxySharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace API_Core.Hosts.Websites
 {
@@ -41,7 +42,11 @@ namespace API_Core.Hosts.Websites
 
         public override void retrieveTvStreamLinks(TvSerie serie)
         {
-            var handler = new ClearanceHandler();
+            var handler = new ClearanceHandler("http://localhost:8191/")
+            {
+                UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36",
+                MaxTimeout = 60000
+            };
             var client = new HttpClient(handler);
             try
             {
@@ -69,7 +74,11 @@ namespace API_Core.Hosts.Websites
             try
             {
                 var target = new Uri(title);
-                var handler = new ClearanceHandler();
+                var handler = new ClearanceHandler("http://localhost:8191/")
+                {
+                    UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36",
+                    MaxTimeout = 60000
+                };
                 var client = new HttpClient(handler);
                 var content = client.GetStringAsync(target);
                 HtmlAgilityPack.HtmlDocument htmlDoc = new HtmlAgilityPack.HtmlDocument();
@@ -92,7 +101,7 @@ namespace API_Core.Hosts.Websites
 
                 return tmp;
             }
-            catch (AggregateException ex) when (ex.InnerException is CloudFlareClearanceException)
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.InnerException.Message);
                 return null;
@@ -101,7 +110,11 @@ namespace API_Core.Hosts.Websites
 
         private string getSerieDescr(Uri link)
         {
-            var handler = new ClearanceHandler();
+            var handler = new ClearanceHandler("http://localhost:8191/")
+            {
+                UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36",
+                MaxTimeout = 60000
+            };
             var client = new HttpClient(handler);
             try
             {
@@ -118,7 +131,11 @@ namespace API_Core.Hosts.Websites
 
         private string getMovieeDescr(Uri link)
         {
-            var handler = new ClearanceHandler();
+            var handler = new ClearanceHandler("http://localhost:8191/")
+            {
+                UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36",
+                MaxTimeout = 60000
+            };
             var client = new HttpClient(handler);
             try
             {
@@ -136,7 +153,11 @@ namespace API_Core.Hosts.Websites
         public override List<TvSerie> searchTvSeries(string tmp_title)
         {
             var target = new Uri(retrieveLinkSeries() + "?s=" + tmp_title);
-            var handler = new ClearanceHandler();
+            var handler = new ClearanceHandler("http://localhost:8191/")
+            {
+                UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36",
+                MaxTimeout = 60000
+            };
             var client = new HttpClient(handler);
             List<TvSerie> tmp = new List<TvSerie>();
 
@@ -171,7 +192,11 @@ namespace API_Core.Hosts.Websites
         public override List<Movie> searchMovie(string tmp_title)
         {
             var target = new Uri(retrieveLinkMovies() + "?s=" + tmp_title);
-            var handler = new ClearanceHandler();
+            var handler = new ClearanceHandler("http://localhost:8191/")
+            {
+                UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36",
+                MaxTimeout = 60000
+            };
             var client = new HttpClient(handler);
             List<Movie> tmp = new List<Movie>();
 
@@ -220,7 +245,11 @@ namespace API_Core.Hosts.Websites
         public override void retrieveStreamLinks(Movie movie)
         {
             var target = movie.getMoviePageLink();
-            var handler = new ClearanceHandler();
+            var handler = new ClearanceHandler("http://localhost:8191/")
+            {
+                UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36",
+                MaxTimeout = 60000
+            };
             var client = new HttpClient(handler);
 
             try
@@ -235,10 +264,16 @@ namespace API_Core.Hosts.Websites
                     Console.WriteLine("Something goes terrible wrong...");
                     return;
                 }
+
+                var details = WebUtility.HtmlDecode(nodes[0].SelectSingleNode("//*[@id=\"details\"]").InnerText);
+                Regex toUse = new Regex(@"Genere:([a-zA-Z]+).+(\d{4}).+(\d{2,3})");
+                var res = toUse.Match(details).Groups;
+                movie.setMovieDuration(res[3].Value);
+                movie.setMovieType(res[0].Value);
+
                 //Travel To Player of HDPass
                 var node = nodes[0].ChildNodes[1].Attributes[3].Value;
                 target = new Uri(node);
-                handler = new ClearanceHandler();
                 client = new HttpClient(handler);
                 content = client.GetStringAsync(target);
                 htmlDoc = new HtmlAgilityPack.HtmlDocument();
@@ -251,8 +286,7 @@ namespace API_Core.Hosts.Websites
                 {
                     var target_1 = new Uri(WebUtility.HtmlDecode(nds[i].ChildNodes[0].Attributes[0].Value).Replace("&alta=", "&play_chosen="));
                     var providerInt = int.Parse(getBetween(nds[i].ChildNodes[0].Attributes[0].Value, "host=", "&"));
-                    var handler_1 = new ClearanceHandler();
-                    var client_1 = new HttpClient(handler_1);
+                    var client_1 = new HttpClient(handler);
 
                     var content_1 = client.GetStringAsync(target_1);
                     var htmlDoc_1 = new HtmlAgilityPack.HtmlDocument();
@@ -267,14 +301,13 @@ namespace API_Core.Hosts.Websites
                     }
                     catch
                     {
-
                         FinalUrl = nodo_1.Attributes[1].Value;
                     }
 
                     movie.addLink(provider, FinalUrl);
                 }
             }
-            catch (AggregateException ex) when (ex.InnerException is CloudFlareClearanceException)
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.InnerException.Message);
                 return;

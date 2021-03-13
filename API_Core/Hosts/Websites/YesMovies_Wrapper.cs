@@ -1,4 +1,4 @@
-﻿using CloudFlareUtilities;
+﻿using CloudProxySharp;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -37,7 +37,11 @@ namespace API_Core.Hosts.Websites
         public override List<Movie> searchMovie(string tmp_title)
         {
             var target = new Uri(retrieveLink() + "searching/" + tmp_title + ".html");
-            var handler = new ClearanceHandler();
+            var handler = new ClearanceHandler("http://localhost:8191/")
+            {
+                UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36",
+                MaxTimeout = 60000
+            };
             var client = new HttpClient(handler);
             List<Movie> tmp = new List<Movie>();
 
@@ -49,7 +53,7 @@ namespace API_Core.Hosts.Websites
                 
                 return tmp;
             }
-            catch
+            catch (Exception ex)
             {  }
 
             return null;
@@ -71,7 +75,11 @@ namespace API_Core.Hosts.Websites
         public override void retrieveStreamLinks(Movie movie)
         {
             var target = movie.getMoviePageLink();
-            var handler = new ClearanceHandler();
+            var handler = new ClearanceHandler("http://localhost:8191/")
+            {
+                UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36",
+                MaxTimeout = 60000
+            };
             var client = new HttpClient(handler);
 
             try
@@ -82,7 +90,7 @@ namespace API_Core.Hosts.Websites
                 htmlDoc.LoadHtml(content.Result);
 
             }
-            catch (AggregateException ex) when (ex.InnerException is CloudFlareClearanceException)
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.InnerException.Message);
                 return;

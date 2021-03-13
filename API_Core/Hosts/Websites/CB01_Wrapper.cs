@@ -1,4 +1,4 @@
-﻿using CloudFlareUtilities;
+﻿using CloudProxySharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -56,7 +56,11 @@ namespace API_Core.Hosts.Websites
             try
             {
                 var target = new Uri(title);
-                var handler = new ClearanceHandler();
+                var handler = new ClearanceHandler("http://localhost:8191/")
+                {
+                    UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36",
+                    MaxTimeout = 60000
+                };
                 var client = new HttpClient(handler);
                 var content = client.GetStringAsync(target);
                 HtmlAgilityPack.HtmlDocument htmlDoc = new HtmlAgilityPack.HtmlDocument();
@@ -77,7 +81,7 @@ namespace API_Core.Hosts.Websites
                 }
                 return tvList;
             }
-            catch (AggregateException ex) when (ex.InnerException is CloudFlareClearanceException)
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.InnerException.Message);
                 return null;
@@ -89,7 +93,11 @@ namespace API_Core.Hosts.Websites
             try
             {
                 var target = serie.getSeriePageLink();
-                var handler = new ClearanceHandler();
+                var handler = new ClearanceHandler("http://localhost:8191/")
+                {
+                    UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36",
+                    MaxTimeout = 60000
+                };
                 var client = new HttpClient(handler);
                 var content = client.GetStringAsync(target);
                 HtmlAgilityPack.HtmlDocument htmlDoc = new HtmlAgilityPack.HtmlDocument();
@@ -126,7 +134,7 @@ namespace API_Core.Hosts.Websites
                 }
                 
             }
-            catch (AggregateException ex) when (ex.InnerException is CloudFlareClearanceException)
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.InnerException.Message);
             }
@@ -140,9 +148,13 @@ namespace API_Core.Hosts.Websites
             try
             {
                 var target = new Uri(title);
-                var handler = new ClearanceHandler();
+                var handler = new ClearanceHandler("http://localhost:8191/")
+                {
+                    UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36",
+                    MaxTimeout = 60000
+                };
                 var client = new HttpClient(handler);
-                var content = client.GetStringAsync(target);
+                var content = client.GetStringAsync(title);
                 HtmlAgilityPack.HtmlDocument htmlDoc = new HtmlAgilityPack.HtmlDocument();
                 htmlDoc.LoadHtml(content.Result);
                 var nodes = htmlDoc.DocumentNode.SelectNodes("//div[contains(@class, 'post-')]");
@@ -153,7 +165,6 @@ namespace API_Core.Hosts.Websites
                for (int i = 1; i <= lastPage; i++)
                 {
                     target = new Uri(title);
-                    handler = new ClearanceHandler();
                     client = new HttpClient(handler);
                     content = client.GetStringAsync(target);
                     htmlDoc = new HtmlAgilityPack.HtmlDocument();
@@ -161,10 +172,11 @@ namespace API_Core.Hosts.Websites
                     nodes = htmlDoc.DocumentNode.SelectNodes("//div[contains(@class, 'post-')]");
                     foreach (HtmlAgilityPack.HtmlNode node in nodes)
                     {
+                        var tmp = node.SelectSingleNode("//*[contains(@class, 'rating-icons')]");
                         string ImageLink = node.Descendants("img").FirstOrDefault().Attributes["src"].Value;
                         Uri MovieLink = new Uri(node.Descendants("a").FirstOrDefault().Attributes[0].Value);
                         string MovieTitle = node.Descendants("h3").FirstOrDefault().InnerText;
-                        string DescriptionData = node.Descendants("p").FirstOrDefault().InnerText;
+                        var DescriptionData = node.Descendants("p").FirstOrDefault().InnerText;
                         //var points = node.SelectSingleNode(".//div[contains(@id, 'pd_rating_holder_')]");
 
                         mvList.Add(new Movie(WebUtility.HtmlDecode(MovieTitle), WebUtility.HtmlDecode(DescriptionData), 1, ImageLink, MovieLink));
@@ -174,7 +186,7 @@ namespace API_Core.Hosts.Websites
                 }
                 return mvList;
             }
-            catch (AggregateException ex) when (ex.InnerException is CloudFlareClearanceException)
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.InnerException.Message);
                 return null;
@@ -188,7 +200,11 @@ namespace API_Core.Hosts.Websites
             try
             {
                 var target = new Uri(title);
-                var handler = new ClearanceHandler();
+                var handler = new ClearanceHandler("http://localhost:8191/")
+                {
+                    UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36",
+                    MaxTimeout = 60000
+                };
                 var client = new HttpClient(handler);
                 var content = client.GetStringAsync(target);
                 HtmlAgilityPack.HtmlDocument htmlDoc = new HtmlAgilityPack.HtmlDocument();
@@ -198,7 +214,6 @@ namespace API_Core.Hosts.Websites
                     return null;
 
                 target = new Uri(title);
-                handler = new ClearanceHandler();
                 client = new HttpClient(handler);
                 content = client.GetStringAsync(target);
                 htmlDoc = new HtmlAgilityPack.HtmlDocument();
@@ -216,7 +231,7 @@ namespace API_Core.Hosts.Websites
 
                 return mvList;
             }
-            catch (AggregateException ex) when (ex.InnerException is CloudFlareClearanceException)
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.InnerException.Message);
                 return null;
@@ -233,21 +248,29 @@ namespace API_Core.Hosts.Websites
             try
             {
                 var target = movie.getMoviePageLink();
-                var handler = new ClearanceHandler();
+                var handler = new ClearanceHandler("http://localhost:8191/")
+                {
+                    UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36",
+                    MaxTimeout = 60000
+                };
                 var client = new HttpClient(handler);
                 var content = client.GetStringAsync(target);
                 HtmlAgilityPack.HtmlDocument htmlDoc = new HtmlAgilityPack.HtmlDocument();
                 htmlDoc.LoadHtml(content.Result);
                 var nodes = htmlDoc.DocumentNode.SelectNodes("//table[contains(@class, 'tableinside') or contains(@class, 'cbtable')]");
                 if (nodes == null)
-                {
                     return;
-                }
+
                 bool HD = false;
                 foreach (HtmlAgilityPack.HtmlNode node in nodes)
                 {
                     try
                     {
+                        Regex infos = new Regex(@"([a-zA-Z]*)(?:.*)(\d{2,3})");
+                        var tmp = WebUtility.HtmlDecode(node.SelectSingleNode("//*[@id=\"sequex-main-inner\"]/div[1]/article/div[1]").FirstChild.InnerText);
+                        var res = infos.Match(tmp).Groups;
+                        movie.setMovieDuration(res[2].Value);
+                        movie.setMovieType(res[1].Value);
                         if (node.InnerText.ToLower().Contains("download:") && node.InnerText.ToLower().Contains("streaming:"))
                             continue;
 
@@ -275,7 +298,7 @@ namespace API_Core.Hosts.Websites
                 }
                 
             }
-            catch (AggregateException ex) when (ex.InnerException is CloudFlareClearanceException)
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.InnerException.Message);
             }
