@@ -59,7 +59,37 @@ namespace midiastrimi_cli
                         break;
                     case 2:
                         //Test for top list CB01 actually
-                        mainClass.getTopList();
+                        var tpmovieRetrieved = mainClass.getTopList();
+                        int topmovieIndex = 0;
+                        foreach (var x in tpmovieRetrieved)
+                        {
+                            Console.WriteLine("\nChoice: " + topmovieIndex++.ToString());
+                            Console.WriteLine("Title: " + x.getMovieTitle());
+                            int charCounter = 0;
+                            Console.Write('\t');                                                                              //CB01 strange whitespaces.....
+                            string to_print = x.getMovieDesc().Replace("\r", "").Replace("\n", "").Replace("\t", "").Replace("                                                                                               ", " ");
+                            for (int i = 0; i < to_print.Length; i++)
+                            {
+                                Console.Write(to_print[i]);
+                                charCounter++;
+                                if (charCounter == 97)
+                                {
+                                    Console.WriteLine();
+                                    charCounter = 0;
+                                    Console.Write('\t');
+                                }
+                            }
+                            Console.WriteLine("\n");
+                        }
+                        Console.Write("Your choice: ");
+                        int tchoiceM = int.Parse(Console.ReadLine());
+                        mainClass.getStreamList(tpmovieRetrieved[tchoiceM]);
+                        Console.WriteLine("Here your stream links:");
+                        foreach (var x in tpmovieRetrieved[tchoiceM].getStreams())
+                        {
+                            Console.WriteLine("\t" + x.link);
+                        }
+                        break;
                         break;
                     case 3:
                         Console.Write("Please insert a series tv title: ");

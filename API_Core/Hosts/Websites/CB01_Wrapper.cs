@@ -79,6 +79,9 @@ namespace API_Core.Hosts.Websites
 
                     tvList.Add(new TvSerie(WebUtility.HtmlDecode(MovieTitle), DescriptionData, 1, ImageLink, MovieLink));
                 }
+                foreach (var x in tvList)
+                    retrieveTvStreamLinks(x);
+
                 return tvList;
             }
             catch (Exception ex)
@@ -184,6 +187,10 @@ namespace API_Core.Hosts.Websites
                     int suc = i + 1;
                     title = title.Replace("/" + i + "/", "/" + suc + "/");
                 }
+                for (int i = 0; i < mvList.Count; i++)
+                    if (!retrieveStreamLinks(mvList[i]))
+                        mvList.Remove(mvList[i]);
+
                 return mvList;
             }
             catch (Exception ex)
@@ -224,10 +231,12 @@ namespace API_Core.Hosts.Websites
                     var res = nod.FirstChild;
                     string ImageLink = res.Descendants("img").FirstOrDefault().Attributes["src"].Value;
                     Uri MovieLink = new Uri(res.Descendants("a").FirstOrDefault().Attributes[0].Value);
-                    string MovieTitle = res.Descendants("img").FirstOrDefault().Attributes[0].Value;
                     string DescriptionData = "";
-                    mvList.Add(new Movie(WebUtility.HtmlDecode(MovieTitle), WebUtility.HtmlDecode(DescriptionData), 1, ImageLink, MovieLink));
+                    mvList.Add(new Movie("", WebUtility.HtmlDecode(DescriptionData), 1, ImageLink, MovieLink));
                 }
+                for (int i = 0; i < mvList.Count; i++)
+                    if (!retrieveStreamLinks(mvList[i]))
+                        mvList.Remove(mvList[i]);
 
                 return mvList;
             }
@@ -243,7 +252,7 @@ namespace API_Core.Hosts.Websites
             Console.WriteLine("Host is not required anymore");
         }
 
-        public override void retrieveStreamLinks(Movie movie)
+        public override bool retrieveStreamLinks(Movie movie)
         {
             try
             {
@@ -259,18 +268,24 @@ namespace API_Core.Hosts.Websites
                 htmlDoc.LoadHtml(content.Result);
                 var nodes = htmlDoc.DocumentNode.SelectNodes("//table[contains(@class, 'tableinside') or contains(@class, 'cbtable')]");
                 if (nodes == null)
-                    return;
+                    return false;
+
+                if (movie.movieTitle == "")
+                {
+                    var tmpNode = htmlDoc.DocumentNode.SelectSingleNode("/html/body/main/div[1]/div[3]/h1");
+                    movie.movieTitle = WebUtility.HtmlDecode(tmpNode.InnerText);
+                }
+                if (movie.movieDescription == "")
+                {
+                    var tmpNode = htmlDoc.DocumentNode.SelectSingleNode("//*[@id=\"sequex-main-inner\"]/div[1]/article/div[1]/p[2]");
+                    movie.movieDescription = WebUtility.HtmlDecode(tmpNode.InnerText);
+                }
 
                 bool HD = false;
                 foreach (HtmlAgilityPack.HtmlNode node in nodes)
                 {
                     try
                     {
-                        Regex infos = new Regex(@"([a-zA-Z]*)(?:.*)(\d{2,3})");
-                        var tmp = WebUtility.HtmlDecode(node.SelectSingleNode("//*[@id=\"sequex-main-inner\"]/div[1]/article/div[1]").FirstChild.InnerText);
-                        var res = infos.Match(tmp).Groups;
-                        movie.setMovieDuration(res[2].Value);
-                        movie.setMovieType(res[1].Value);
                         if (node.InnerText.ToLower().Contains("download:") && node.InnerText.ToLower().Contains("streaming:"))
                             continue;
 
@@ -292,15 +307,16 @@ namespace API_Core.Hosts.Websites
                             provider = node.SelectSingleNode(".//a").InnerText;
 
                         if (link.StartsWith("https") || link.StartsWith("http"))
-                            movie.addLink(provider, link);    
+                            movie.addLink(provider, link);
                     }
-                    catch { }
+                    catch {}
                 }
-                
+                return true;
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.InnerException.Message);
+                return false;
             }
         }
     }

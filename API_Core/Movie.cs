@@ -18,26 +18,20 @@ namespace API_Core
 
     public class Movie
     {
-        private string movieTitle { get; set; }
-        private string movieDescription { get; set; }
-        private string movieType { get; set; }
-        private string movieDuration { get; set; }
-        private string movieImage { get; set; }
-        private int movieProvider { get; set; }
-        private string movieScore { get; set; }
-        private Uri pageLink { get; set; }
-        private List<stream> streamLinks { get; set; }
+        public string movieTitle { get; set; }
+        public string movieDescription { get; set; }
+        public string movieImage { get; set; }
+        public int movieProvider { get; set; }
+        public Uri pageLink { get; set; }
+        public List<stream> streamLinks { get; set; }
 
-        public Movie(string s_movieTitle, string s_movieDescription, int i_movieProvider, string s_movieImage, Uri s_pageLink, string s_movieType = "", string s_movieDuration = "", string s_movieScore = "N/A")
+        public Movie(string s_movieTitle, string s_movieDescription, int i_movieProvider, string s_movieImage, Uri s_pageLink)
         {
             this.movieTitle = s_movieTitle;
             this.movieDescription = s_movieDescription;
             this.pageLink = s_pageLink;
             this.movieProvider = i_movieProvider;
             this.movieImage = s_movieImage;
-            this.movieScore = s_movieScore;
-            this.movieDuration = s_movieDuration;
-            this.movieType = s_movieType;
             this.streamLinks = new List<stream> ();
         }
 
@@ -67,35 +61,11 @@ namespace API_Core
             return this.pageLink;
         }
 
-        public string getMovieDuration()
-        {
-            return this.movieDuration;
-        }
-
-        public string getMovieType()
-        {
-           return this.movieType;
-        }
         #endregion
 
         #region Setter
         public void addLink(string provider, string link) {
             this.streamLinks.Add(new stream(provider, link));
-        }
-        
-        public void setMoviePoints(string x)
-        {
-            this.movieScore = x;
-        }
-
-        public void setMovieDuration(string x)
-        {
-            this.movieDuration = x;
-        }
-
-        public void setMovieType(string x)
-        {
-            this.movieType = x;
         }
         #endregion
 

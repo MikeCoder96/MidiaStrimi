@@ -53,6 +53,8 @@ namespace API_Core.Hosts.Websites
                 var content = client.GetStringAsync(serie.getSeriePageLink()).Result;
                 HtmlAgilityPack.HtmlDocument htmlDoc = new HtmlAgilityPack.HtmlDocument();
                 htmlDoc.LoadHtml(content);
+                var nodeDescription = htmlDoc.DocumentNode.SelectSingleNode("//*[@id=\"infoSerie\"]/div/div/div[2]/div/div[2]/p[2]");
+                serie.SerieDescription = WebUtility.HtmlDecode(nodeDescription.InnerText);
                 var nodeSelected = htmlDoc.DocumentNode.SelectSingleNode("//*[@id=\"iframeVid\"]");
                 Dictionary<string, string> tmp = new Dictionary<string, string>();
                 tmp.Add("MainPanel", nodeSelected.Attributes[3].Value);
@@ -83,21 +85,26 @@ namespace API_Core.Hosts.Websites
                 var content = client.GetStringAsync(target);
                 HtmlAgilityPack.HtmlDocument htmlDoc = new HtmlAgilityPack.HtmlDocument();
                 htmlDoc.LoadHtml(content.Result);
-                var node = htmlDoc.DocumentNode.SelectSingleNode("/html/body/section[3]/div/div[2]/div[1]/div[2]/div/div[1]");
+                var node = htmlDoc.DocumentNode.SelectSingleNode("//*[contains(@class,'slides')]");
                 if (node == null)
                     return null;
-                var nodes = node.ChildNodes.FirstOrDefault().ChildNodes;
+                var nodes = node.ChildNodes;
                 List<Movie> tmp = new List<Movie>();
                 foreach (HtmlAgilityPack.HtmlNode nod in nodes)
                 {
+                    if (nod.Name.Contains("#text"))
+                        continue;
                     string imageLink = nod.Descendants("img").FirstOrDefault().Attributes["src"].Value;
                     Uri movieLink = new Uri(nod.Descendants("a").FirstOrDefault().Attributes[0].Value);
 
                     var toUtf = nod.Descendants("img").FirstOrDefault().Attributes["alt"].Value;
                     string movieTitle = WebUtility.HtmlDecode(WebUtility.HtmlDecode(toUtf).Replace("streaming", ""));
 
-                    tmp.Add(new Movie(movieTitle, WebUtility.HtmlDecode(WebUtility.HtmlDecode(getMovieeDescr(movieLink))), 2, imageLink, movieLink));
+                    tmp.Add(new Movie(movieTitle, "", 2, imageLink, movieLink));
                 }
+                for (int i = 0; i < tmp.Count; i++)
+                    if (!retrieveStreamLinks(tmp[i]))
+                        tmp.Remove(tmp[i]);
 
                 return tmp;
             }
@@ -106,48 +113,6 @@ namespace API_Core.Hosts.Websites
                 Console.WriteLine(ex.InnerException.Message);
                 return null;
             }
-        }
-
-        private string getSerieDescr(Uri link)
-        {
-            var handler = new ClearanceHandler("http://localhost:8191/")
-            {
-                UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36",
-                MaxTimeout = 60000
-            };
-            var client = new HttpClient(handler);
-            try
-            {
-                var content = client.GetStringAsync(link).Result;
-                HtmlAgilityPack.HtmlDocument htmlDoc = new HtmlAgilityPack.HtmlDocument();
-                htmlDoc.LoadHtml(content);
-                var nodeSelected = htmlDoc.DocumentNode.SelectSingleNode("//*[@id=\"infoSerie\"]/div/div/div[2]/div/div[2]/p[2]");
-                return nodeSelected.InnerText;
-            }
-            catch { }
-
-            return "NO DESCRIPTION";
-        }
-
-        private string getMovieeDescr(Uri link)
-        {
-            var handler = new ClearanceHandler("http://localhost:8191/")
-            {
-                UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36",
-                MaxTimeout = 60000
-            };
-            var client = new HttpClient(handler);
-            try
-            {
-                var content = client.GetStringAsync(link).Result;
-                HtmlAgilityPack.HtmlDocument htmlDoc = new HtmlAgilityPack.HtmlDocument();
-                htmlDoc.LoadHtml(content);
-                var nodeSelected = htmlDoc.DocumentNode.SelectSingleNode("/html/body/section[3]/div/div/div[1]/div[7]/div[2]/p/text()");
-                return nodeSelected.InnerText;
-            }
-            catch { }
-
-            return "NO DESCRIPTION";
         }
 
         public override List<TvSerie> searchTvSeries(string tmp_title)
@@ -177,10 +142,13 @@ namespace API_Core.Hosts.Websites
 
                     var toUTF = node.SelectSingleNode(".//div[contains(@class, 'infoSeries')]").ChildNodes[1].InnerText;
                     var points = node.SelectSingleNode(".//span[contains(@class, 'imdb')]").FirstChild.InnerText;
-                    string serieTitle = WebUtility.HtmlDecode(WebUtility.HtmlDecode(toUTF));
+                    string serieTitle = WebUtility.HtmlDecode(toUTF);
 
-                    tmp.Add(new TvSerie(serieTitle, getSerieDescr(serieLink), 2, imageLink, serieLink, points));
+                    tmp.Add(new TvSerie(serieTitle, "", 2, imageLink, serieLink, points));
                 }
+                foreach (var x in tmp)
+                    retrieveTvStreamLinks(x);
+
                 return tmp;
             }
             catch (Exception ex)
@@ -220,8 +188,12 @@ namespace API_Core.Hosts.Websites
 
                     string movieTitle = WebUtility.HtmlDecode(toUtf.InnerText);
 
-                    tmp.Add(new Movie(movieTitle, WebUtility.HtmlDecode(WebUtility.HtmlDecode(getMovieeDescr(movieLink))), 2, imageLink, movieLink, points));
+                    tmp.Add(new Movie(movieTitle, "", 2, imageLink, movieLink));
                 }
+                for (int i = 0; i < tmp.Count; i++)
+                    if (!retrieveStreamLinks(tmp[i]))
+                        tmp.Remove(tmp[i]);
+
                 return tmp;
             }
             catch { }
@@ -242,7 +214,7 @@ namespace API_Core.Hosts.Websites
             return "";
         }
 
-        public override void retrieveStreamLinks(Movie movie)
+        public override bool retrieveStreamLinks(Movie movie)
         {
             var target = movie.getMoviePageLink();
             var handler = new ClearanceHandler("http://localhost:8191/")
@@ -262,17 +234,18 @@ namespace API_Core.Hosts.Websites
                 if (nodes == null)
                 {
                     Console.WriteLine("Something goes terrible wrong...");
-                    return;
+                    return false;
                 }
 
-                var details = WebUtility.HtmlDecode(nodes[0].SelectSingleNode("//*[@id=\"details\"]").InnerText);
-                Regex toUse = new Regex(@"Genere:([a-zA-Z]+).+(\d{4}).+(\d{2,3})");
-                var res = toUse.Match(details).Groups;
-                movie.setMovieDuration(res[3].Value);
-                movie.setMovieType(res[0].Value);
+                var nodeDescription = htmlDoc.DocumentNode.SelectSingleNode("/html/body/section[3]/div/div/div[1]/div[7]/div[2]/p/text()");
+                movie.movieDescription = WebUtility.HtmlDecode(nodeDescription.InnerText);
 
                 //Travel To Player of HDPass
-                var node = nodes[0].ChildNodes[1].Attributes[3].Value;
+                var nodeA = nodes[0].ChildNodes[1];
+                if (nodeA.InnerText.Contains("non trovato"))
+                    return false;
+
+                var node = nodeA.Attributes[3].Value;
                 target = new Uri(node);
                 client = new HttpClient(handler);
                 content = client.GetStringAsync(target);
@@ -280,12 +253,11 @@ namespace API_Core.Hosts.Websites
                 htmlDoc.LoadHtml(content.Result);
 
                 //Get the hosts
-                nodes = htmlDoc.DocumentNode.SelectNodes("/html/body/div[1]/div[2]/ul");
-                var nds = nodes[0].ChildNodes;
-                for (int i = 1; i < nds.Count; i += 2)
+                //nodes = htmlDoc.DocumentNode.SelectNodes("/html/body/div[1]/div[2]/ul");
+                nodes = htmlDoc.DocumentNode.SelectNodes("//*[contains(@id, 'host-')]");
+                foreach (var host in nodes)
                 {
-                    var target_1 = new Uri(WebUtility.HtmlDecode(nds[i].ChildNodes[0].Attributes[0].Value).Replace("&alta=", "&play_chosen="));
-                    var providerInt = int.Parse(getBetween(nds[i].ChildNodes[0].Attributes[0].Value, "host=", "&"));
+                    var target_1 = new Uri(WebUtility.HtmlDecode(host.ChildNodes.FirstOrDefault().Attributes["href"].Value).Replace("&alta=", "&play_chosen="));
                     var client_1 = new HttpClient(handler);
 
                     var content_1 = client.GetStringAsync(target_1);
@@ -293,7 +265,7 @@ namespace API_Core.Hosts.Websites
                     htmlDoc_1.LoadHtml(content_1.Result);
                     var nodo_1 = htmlDoc_1.DocumentNode.SelectSingleNode("//*[@id=\"main-player-wrapper\"]/iframe");
                     string FinalUrl = "";
-                    string provider = htmlDoc_1.DocumentNode.SelectSingleNode("//*[@id=\"host-" + providerInt.ToString() + "\"]").FirstChild.InnerText;
+                    string provider = host.InnerText;
                     try
                     {
                         byte[] data = System.Convert.FromBase64String(nodo_1.Attributes[1].Value);
@@ -306,11 +278,12 @@ namespace API_Core.Hosts.Websites
 
                     movie.addLink(provider, FinalUrl);
                 }
+                return true;
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.InnerException.Message);
-                return;
+                return false;
             }
         }
     }

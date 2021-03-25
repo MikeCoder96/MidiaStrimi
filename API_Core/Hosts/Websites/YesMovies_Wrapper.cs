@@ -72,7 +72,7 @@ namespace API_Core.Hosts.Websites
             return "";
         }
 
-        public override void retrieveStreamLinks(Movie movie)
+        public override bool retrieveStreamLinks(Movie movie)
         {
             var target = movie.getMoviePageLink();
             var handler = new ClearanceHandler("http://localhost:8191/")
@@ -88,12 +88,13 @@ namespace API_Core.Hosts.Websites
                 var content = client.GetStringAsync(target);
                 HtmlAgilityPack.HtmlDocument htmlDoc = new HtmlAgilityPack.HtmlDocument();
                 htmlDoc.LoadHtml(content.Result);
+                return true;
 
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.InnerException.Message);
-                return;
+                return false;
             }
         }
     }
