@@ -7,7 +7,8 @@ MidiaStrimi born with the idea of watch movie from some websites without take a 
 
   - CB01 (Italian)
   - AltaDefinizone (Italian)
-  - YesMovies (English)
+  - MovieWatcher (English) Incoming..
+  - Primewire (English) Incoming..
 
 #### .NET Core!
 
@@ -26,12 +27,7 @@ Here a list of TODO:
 
 - Implement GUI interface
 - Extend with other website
-- Bypass hCaptcha & reCaptcha
-
-### How to compile and use it
-
-```This Section Need To Be Done```
-
+- Bypass hCaptcha & reCaptcha (FlareSolverr)
 
 ### NuGet Packages
 
@@ -39,14 +35,14 @@ MidiaStrimi is currently extended with the following NuGet pextension. Instructi
 
 | NuGet Package | WebPage |
 | ------ | ------ |
-| CloudFlareUtilities | [https://github.com/elcattivo/CloudFlareUtilities] |
+| FlareSolverr | [https://github.com/FlareSolverr/FlareSolverr] |
 | HTMLAgilityPack | [https://html-agility-pack.net/] |
 
 
-### Development
+### Platform supported
+| Architecture | Supported |
+| ------ | ------ |
+| x86 | Yes |
+| x64 | Yes |
+| ARM64 | Yes |
 
-```This Section Need To Be Done```
-
-#### Building for source
-
-```This Section Need To Be Done```
